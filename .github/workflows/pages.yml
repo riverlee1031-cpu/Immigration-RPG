@@ -25,12 +25,13 @@ jobs:
       - name: Verify official question bank
         run: |
           node --check app-v2.js
+          node --check practice.js
           node tools/verify-bank.cjs
       - uses: actions/configure-pages@v5
       - name: Prepare website
         run: |
           mkdir _site
-          cp index.html style.css app-v2.js _site/
+          cp index.html style.css app-v2.js practice.js _site/
           cp -r data _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3

@@ -14,6 +14,10 @@ for(const p of bank.papers){
   assert.equal(q.grade,p.grade);assert.equal(q.rocYear,p.rocYear);assert.equal(q.originalSubject,p.originalSubject);
   assert(q.acceptedAnswers.length>0&&q.acceptedAnswers.every(a=>Number.isInteger(a)&&a>=0&&a<4));
   assert(q.page>=1&&q.page<=p.pages);
+  assert(typeof q.question==='string'&&q.question.trim().length>0);
+  assert(q.choices.length===4&&q.choices.every(c=>typeof c==='string'&&c.trim().length>0));
+  assert.notDeepEqual(q.choices,['A','B','C','D']);
+  assert(!/[\ue000-\uf8ff]/.test(q.question+q.choices.join('')+(q.passage||'')),'Unmapped PDF glyph: '+q.id);
  }
 }
 assert.deepEqual([...new Set(bank.papers.map(p=>p.rocYear))].sort(),[111,112,113,114,115]);

@@ -7,3 +7,5 @@ a{color:#9ce7ff;text-underline-offset:3px}.question-title{margin-top:14px}.exam-
 .subject-rounds{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px}.keypoint{padding:16px;background:#223d45;border-left:4px solid #5fd4a0;margin-top:20px}.skill input{display:block;width:100%;margin-top:8px}.keypoint p{color:#d3e8ed}.question-title{overflow-wrap:anywhere}.reading-passage{overflow-wrap:anywhere}
 
 .question-source{color:#f4d57e;font-size:14px;line-height:1.8;margin:4px 0 20px;padding:8px 12px;background:#152034;border-left:3px solid #f4d57e;overflow-wrap:anywhere}.question:empty{display:none}
+
+.prep-category{padding:10px 14px;margin-bottom:16px;background:#223450;border-left:3px solid #82d6eb;color:#c8e5f2}

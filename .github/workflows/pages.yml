@@ -29,6 +29,7 @@ jobs:
           node --check theme.js
           node --check explanations.js
           node tools/verify-bank.cjs
+          node tools/verify-explanations.cjs
       - uses: actions/configure-pages@v5
       - name: Prepare website
         run: |

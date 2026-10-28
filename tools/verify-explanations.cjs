@@ -1,7 +1,11 @@
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const bank=JSON.parse(fs.readFileSync('data/bank.json','utf8'));
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const root=path.resolve(__dirname,'..'),bank=JSON.parse(fs.readFileSync(path.join(root,'data/bank.json'),'utf8'));
 const context=vm.createContext({questionHtml:q=>`<p>${q.explanation}</p><section class="keypoint"><p>old</p><label>我的筆記<textarea></textarea></label></section><div class="actions"></div>`,quiz:()=>{},home:()=>{},keypoint:()=>'',escapeHtml:s=>String(s),revealed:false,bank});
-vm.runInContext(fs.readFileSync('explanations.js','utf8'),context);
-const coverage=vm.runInContext(`Object.entries(EXPLANATIONS).map(([id,e])=>{const q=bank.questions.find(q=>q.id===id);if(!q)throw Error('Unknown question '+id);if(!e.summary||!e.basis||e.options.length!==4||e.options.some(x=>!x))throw Error('Incomplete explanation '+id);revealed=false;if(questionHtml(q).includes('各選項解析'))throw Error('Answer leaked '+id);revealed=true;const html=questionHtml(q);if(!html.includes('各選項解析')||!html.includes('我的筆記')||!html.includes('本題應選'))throw Error('Missing feedback '+id);for(const [,url] of e.sources)if(!url.startsWith('https://'))throw Error('Invalid source '+id);return id})`,context);
-assert(coverage.length<=bank.questions.length);
-console.log(`Verified ${coverage.length}/${bank.questions.length} explanations: four options, source metadata, hidden until submitted, notes preserved.`);
+vm.runInContext(fs.readFileSync(path.join(root,'explanations.js'),'utf8'),context);
+const files=vm.runInContext('EXPLANATION_FILES',context),groups=[];
+for(const file of files){const p=path.join(root,'data',file);assert(fs.existsSync(p),'Missing '+file);groups.push(JSON.parse(fs.readFileSync(p,'utf8')))}
+const seen=new Set();for(const group of groups)for(const id of Object.keys(group)){assert(!seen.has(id),'Duplicate explanation '+id);seen.add(id)}
+context.groups=groups;
+const result=vm.runInContext(`for(const group of groups)for(const [id,e] of Object.entries(group))if(!EXPLANATIONS[id])EXPLANATIONS[id]=e;const coverage={};for(const [id,e] of Object.entries(EXPLANATIONS)){const q=bank.questions.find(q=>q.id===id);if(!q)throw Error('Unknown question '+id);if(!e.summary||!e.basis||e.options.length!==4||e.options.some(x=>typeof x!=='string'||!x.trim()))throw Error('Incomplete explanation '+id);if(!Array.isArray(e.sources))throw Error('Missing sources '+id);revealed=false;if(questionHtml(q).includes('各選項解析'))throw Error('Answer leaked '+id);revealed=true;const html=questionHtml(q);if(!html.includes('各選項解析')||!html.includes('我的筆記')||!html.includes(q.allCredit?'官方給分':'本題應選'))throw Error('Missing feedback '+id);if(e.warning&&!html.includes(e.warning))throw Error('Missing warning '+id);for(const pair of e.sources)if(pair.length!==2||!pair[0]||!pair[1].startsWith('https://'))throw Error('Invalid source '+id);coverage[q.subject]=(coverage[q.subject]||0)+1;}({count:Object.keys(EXPLANATIONS).length,coverage,missing:bank.questions.filter(q=>!EXPLANATIONS[q.id]).map(q=>q.id)})`,context);
+if(process.argv.includes('--require-complete'))assert.equal(result.count,bank.questions.length,'All questions must have explanations; missing: '+result.missing.slice(0,10).join(','));
+console.log(JSON.stringify(result.coverage));console.log(`Verified ${result.count}/${bank.questions.length} explanations: four reasons, hidden until submitted, warnings and notes preserved.`);

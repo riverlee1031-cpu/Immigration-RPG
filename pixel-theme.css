@@ -6,3 +6,5 @@
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 .option-reason{padding:12px 0;border-top:1px solid #38516f}.option-reason b{color:var(--gold,#efc76a)}.option-reason p{margin:6px 0;line-height:1.8}
+
+.explanation-warning{border-left:3px solid #efc76a;background:#3d3423;padding:12px;color:#ffe3a5}

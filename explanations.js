@@ -8,7 +8,7 @@ quiz=function(){quizWithExplanations();if(!data.activeRound){const target=conten
 
 function explanationCoverageHtml(){const total=bank.questions.length,done=bank.questions.filter(q=>EXPLANATIONS[q.id]).length;return `<section class="panel explanation-coverage"><h2>全題庫逐項解析</h2>${explanationLoading?'<p>解析資料載入中…</p>':''}${explanationLoadError?`<p>${explanationLoadError}</p>`:''}<p>已附逐項解析 <strong>${done} / ${total}</strong> 題${done===total?"，包含舊制補充題。":"；尚待補齊 "+(total-done)+" 題。"}</p><p>送出答案後顯示：應選理由、A～D 選項理由及整理依據。原題有疑義或法規版本差異時，另附提醒。</p></section>`}
 const homeWithExplanationCoverage=home;
-home=function(){homeWithExplanationCoverage();const target=content.querySelector('.quest-main')||content;target.insertAdjacentHTML('afterbegin',explanationCoverageHtml())};
+home=function(){homeWithExplanationCoverage();const target=content.querySelector('.quest-main')||content;const progress=target.querySelector?.('.bank-progress');if(progress)progress.insertAdjacentHTML('afterend',explanationCoverageHtml());else target.insertAdjacentHTML('afterbegin',explanationCoverageHtml())};
 const earlierKeypoint=keypoint;
 keypoint=function(q){return EXPLANATIONS[q.id]?.summary||earlierKeypoint(q)};
 

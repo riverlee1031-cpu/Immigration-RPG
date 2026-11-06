@@ -2,6 +2,8 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 (async()=>{await vm.runInContext('init()',ctx);vm.runInContext(`
 data.attempts=bank.questions.slice(0,200).map(q=>({id:q.id,selected:0,correct:false}));data.attempts.push({...data.attempts[0]},{id:'legacy-demo',selected:0,correct:true});
 if(bankProgress().done!==200||bankProgress().remaining!==1575)throw Error('Unique historical count');
+for(const s of [...new Set(bank.questions.map(q=>q.subject))]){const st=subjectStats(s),qs=bank.questions.filter(q=>q.subject===s),expected=new Set(data.attempts.filter(a=>qs.some(q=>q.id===a.id)).map(a=>a.id)).size;if(st.total!==qs.length||st.practiced!==expected||st.remaining!==qs.length-expected)throw Error('Subject unique coverage '+s)}
+if([...new Set(bank.questions.map(q=>q.subject))].reduce((n,s)=>n+subjectStats(s).practiced,0)!==200)throw Error('Subject sum');
 year='111';subject='行政法';mode='wrong';startBankRound();
 if(data.activeRound.queue.length!==10||new Set(data.activeRound.queue).size!==10||data.activeRound.queue.filter(id=>!bankProgress().seen.has(id)).length!==8)throw Error('Unseen mixed pool');
 const newIndex=data.activeRound.queue.findIndex(id=>!bankProgress().seen.has(id));[data.activeRound.queue[0],data.activeRound.queue[newIndex]]=[data.activeRound.queue[newIndex],data.activeRound.queue[0]];current=null;quiz();if(bankProgress().done!==200)throw Error('Displayed but unanswered counted');pick(current.acceptedAnswers[0]);submitAnswer();submitAnswer();if(bankProgress().done!==201)throw Error('Answer counted twice');

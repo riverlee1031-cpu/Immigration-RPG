@@ -12,3 +12,5 @@
 .bank-progress .stat{min-width:0}.bank-progress .stat strong{font-size:clamp(21px,4vw,27px);white-space:nowrap}.bank-progress>.primary{max-width:100%;white-space:normal}.bank-progress .progress-backup>*{max-width:100%}
 @media(max-width:520px){.bank-progress .stats{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.bank-progress .stat{padding:12px 8px}.bank-progress>.primary{display:block;width:100%;padding:13px 9px}.bank-progress .progress-backup{display:grid;grid-template-columns:1fr}.bank-progress .progress-backup>*{text-align:center;width:100%}.bank-progress h2{font-size:18px}}
 @media(max-width:360px){.bank-progress .stat strong{font-size:18px;letter-spacing:-.025em}}
+
+.subject-progress{margin:12px 0;min-width:0}.subject-progress strong{display:block;color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums}.subject-progress>span{display:block;font-size:13px;color:var(--muted);margin:5px 0 9px}.subject-progress-count{display:block;font-size:11px;font-weight:500;line-height:1.6;margin-top:4px;white-space:normal}.subject-links button.active .subject-progress-count,.subject-rounds button.primary .subject-progress-count{color:#25334a}

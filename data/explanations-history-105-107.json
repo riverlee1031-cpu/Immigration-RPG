@@ -2069,6 +2069,10 @@
       [
         "105年護照條例",
         "https://www.president.gov.tw/PORTALS/0/BULLETINS/PAPER/PDF/7197-4.PDF"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=105120&c=801&s=0710&q=1"
       ]
     ]
   },
@@ -3786,6 +3790,10 @@
       [
         "入出國及移民法（須對照105年版）",
         "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0080132"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=105120&c=801&s=0703&q=1"
       ]
     ]
   },
@@ -9519,6 +9527,10 @@
       [
         "考選部原題與語境",
         "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=Q&code=106130&c=901&s=0415&q=1"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=106130&c=901&s=0415&q=1"
       ]
     ]
   },
@@ -13723,6 +13735,10 @@
       [
         "考選部原題與語境",
         "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=Q&code=107130&c=901&s=0615&q=1"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=107130&c=901&s=0615&q=1"
       ]
     ],
     "warning": "官方更正為一律給分。此處不把四種戳記視為均符合實務規定。"
@@ -14083,15 +14099,19 @@
     "summary": "遺失或滅失護照可補發，題時補發效期原則為五年。",
     "options": [
       "三種護照為外交、公務及普通護照，沒有商務護照類型。",
-      "各類效期及未成年人年齡門檻不能依本項一概表述，普通護照五年短期效期的年齡門檻為未滿14歲，外交與公務效期不是三年。",
+      "外交護照及公務護照效期上限是五年，並非三年。普通護照一般十年，未滿十四歲者五年。",
       "補發須依法定效期重新核發，非必須沿用原護照效期。",
-      "遺失或滅失補發的一般效期為五年，另有特定例外。"
+      "遺失補發的一般效期是五年。按107年規定，未滿十四歲等特定身分的補發效期仍為三年。"
     ],
     "basis": "107年護照條例護照類別、效期及遺失補發規定。",
     "sources": [
       [
         "105年護照條例",
         "https://www.president.gov.tw/PORTALS/0/BULLETINS/PAPER/PDF/7197-4.PDF"
+      ],
+      [
+        "外交部：105年護照新制與遺失補發效期",
+        "https://www.boca.gov.tw/fp-56-3409-3875f-1.html"
       ]
     ]
   },
@@ -14829,6 +14849,10 @@
       [
         "入出國及移民法（含歷史沿革）",
         "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0080132"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=107130&c=901&s=0706&q=1"
       ]
     ],
     "warning": "考選部更正一律給分。四項都是計分接受選項，並非四項法律權利都不存在。"
@@ -14846,6 +14870,10 @@
       [
         "入出國及移民法（含歷史沿革）",
         "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0080132"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=107130&c=901&s=0706&q=1"
       ]
     ],
     "warning": "官方更正B、C均給分。罰鍰與強制驅逐有各自要件，並非只要拒絕查驗即一律同時作成兩種處分。"
@@ -14899,6 +14927,10 @@
       [
         "入出國及移民法（含歷史沿革）",
         "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0080132"
+      ],
+      [
+        "內政部移民署實施面談辦法",
+        "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0080171"
       ]
     ]
   },
@@ -15420,7 +15452,7 @@
       ],
       [
         "國家安全會議組織法",
-        "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=A0010031"
+        "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=A0010021"
       ]
     ]
   },
@@ -15837,7 +15869,7 @@
       "一般事假不是本條法定假別。",
       "被害人受司法機關通知到庭期間應給公假。"
     ],
-    "basis": "107年性別工作平等法第27條",
+    "basis": "中央法規標準法第19、20條",
     "sources": [
       [
         "考選部原題與語境",
@@ -16046,6 +16078,10 @@
       [
         "兩岸人民關係條例（含歷史沿革）",
         "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=Q0010001"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=107130&c=941&s=0616&q=1"
       ]
     ],
     "warning": "考選部更正A、B均給分。罰鍰、出境與收容各有獨立要件。"
@@ -16291,6 +16327,10 @@
       [
         "考選部原題與語境",
         "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=Q&code=107130&c=941&s=0707&q=1"
+      ],
+      [
+        "上海合作組織：創始成員及區域反恐機制",
+        "https://eng.sectsco.org/20170109/192193.html"
       ]
     ]
   },
@@ -16355,6 +16395,10 @@
       [
         "美國國家反恐中心官方介紹",
         "https://www.odni.gov/about/mission-centers-directorates/nctc/about/"
+      ],
+      [
+        "考選部更正答案",
+        "https://wwwq.moex.gov.tw/exam/wHandExamQandA_File.ashx?t=M&code=107130&c=941&s=0707&q=1"
       ]
     ],
     "warning": "考選部更正C、D均給分。C年份有誤，D把反恐情報中心的任務誤寫為關鍵設施主管。"
@@ -16419,7 +16463,7 @@
     "sources": [
       [
         "國防法",
-        "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=F0010001"
+        "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=F0010030"
       ],
       [
         "災害防救法（含歷史沿革）",
@@ -16680,6 +16724,10 @@
       [
         "美國海關暨邊境保護局全球入境計畫資格",
         "https://www.help.cbp.gov/s/article/Article-1319"
+      ],
+      [
+        "美國在台協會：2017年臺灣加入全球入境計畫公告",
+        "https://web-archive-2022.ait.org.tw/taiwan-joins-global-entry/index~1.html"
       ]
     ]
   },

@@ -33,4 +33,15 @@ if(!content.innerHTML.includes('累計答對 2 次 · 累計答錯 2 次'))throw
 reviewFilter='wrong';mistakes();if(content.innerHTML.includes(tracked.id))throw Error('Latest correct answer remains in current mistakes');
 reviewFilter='frequent';mistakes();if(!content.innerHTML.includes(tracked.id))throw Error('Historical wrong attempts disappeared');
 const retained=JSON.parse(localStorage.getItem(KEY));if(retained.attempts.length!==4||retained.favorites[0]!==tracked.id||retained.notes[tracked.id]!=='保留筆記')throw Error('Saved history lost');
-`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts')})().catch(e=>{console.error(e);process.exitCode=1});
+data.attempts=[
+  {id:tracked.id,time:'2026-11-08T16:00:00Z'},
+  {id:tracked.id,time:'2026-11-08T15:59:59Z'},
+  {id:untouched.id,time:'2026-11-08T16:01:00Z'},
+  {id:untouched.id,time:'2026-11-08T16:02:00Z'},
+  {id:'legacy-demo',time:'2026-11-08T16:02:00Z'},
+  {id:tracked.id,time:'invalid'}
+];
+const daily=dailyPractice();
+if(daily.size!==2||daily.get('2026-11-08')?.fresh!==1||daily.get('2026-11-08')?.total!==1||daily.get('2026-11-09')?.total!==3||daily.get('2026-11-09')?.fresh!==1)throw Error('Daily history and Taipei midnight');
+home();if(!content.innerHTML.includes('每日練習紀錄')||!content.innerHTML.includes('練習 3 題 · 新題 1 題 · 重做 2 題'))throw Error('Daily progress missing from home');
+`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, and daily practice')})().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,6 +1,100 @@
 'use strict';
 const simpleHome=home,simpleLibrary=library,textQuestionHtml=questionHtml;
 const CORE=['行政法','入出國及移民法規','移民執法與刑事法','外國文（英文）','國文','法學知識與英文'];
+const CHOICE_WEIGHTS = {
+  '國文': { raw: 20, weight: .1 },
+  '法學知識與英文': { raw: 100, weight: .1 },
+  '行政法': { raw: 50, weight: .2 },
+  '入出國及移民法規': { raw: 50, weight: .2 },
+  '移民執法與刑事法': { raw: 50, weight: .2 },
+  '外國文（英文）': { raw: 25, weight: .2 }
+};
+const WRITTEN_SUBJECTS = ['國文', '行政法', '移民執法與刑事法'];
+const WRITTEN_TARGET = 50;
+
+function writtenTrial(choicePoints, englishChoice, written) {
+  const baseline = WRITTEN_SUBJECTS.reduce((sum, subject) => sum + written[subject] * CHOICE_WEIGHTS[subject].weight, 0);
+  const known = choicePoints + baseline;
+  const gap = Math.max(0, WRITTEN_TARGET - known);
+  const englishNeeded = Math.max(0, WRITTEN_TARGET - englishChoice);
+  const lawNeeded = Math.max(0, (gap - englishNeeded * CHOICE_WEIGHTS['外國文（英文）'].weight) /
+    CHOICE_WEIGHTS['入出國及移民法規'].weight);
+  return { baseline, known, gap, englishNeeded, lawNeeded };
+}
+
+function saveWrittenBaseline(event) {
+  event.preventDefault();
+  const fields = new FormData(event.target);
+  data.profile.writtenBaseline = Object.fromEntries(WRITTEN_SUBJECTS.map(subject => [subject, Number(fields.get(subject))]));
+  save();
+  home();
+}
+
+function choiceForecast() {
+  const eligible = new Map(bank.questions
+    .filter(q => q.grade === '三等' && q.rocYear >= 111 && q.rocYear <= 115 && !q.allCredit && Object.hasOwn(CHOICE_WEIGHTS, q.subject))
+    .map(q => [q.id, q.subject]));
+  const counts = new Map(Object.keys(CHOICE_WEIGHTS).map(subject => [subject, { done: 0, correct: 0 }]));
+  const seen = new Set();
+  for (const attempt of data.attempts) {
+    const subject = eligible.get(attempt.id);
+    if (!subject || seen.has(attempt.id) || typeof attempt.correct !== 'boolean') continue;
+    seen.add(attempt.id);
+    const count = counts.get(subject);
+    count.done++;
+    if (attempt.correct) count.correct++;
+  }
+  const subjects = Object.entries(CHOICE_WEIGHTS).map(([subject, { raw, weight }]) => {
+    const { done, correct } = counts.get(subject);
+    const rate = done ? correct / done : null;
+    const max = raw * weight;
+    return { subject, done, correct, rate, raw, max, score: rate === null ? null : max * rate };
+  });
+  const max = subjects.reduce((sum, item) => sum + item.max, 0);
+  const coveredMax = subjects.reduce((sum, item) => sum + (item.done ? item.max : 0), 0);
+  const estimated = subjects.reduce((sum, item) => sum + (item.score ?? 0), 0);
+  return { subjects, max, coveredMax, estimated, complete: subjects.every(item => item.done > 0) };
+}
+
+function choiceForecastHtml() {
+  const { subjects, max, coveredMax, estimated, complete } = choiceForecast();
+  const writtenMax = 100 - max;
+  const score = value => value.toFixed(1);
+  const english = subjects.find(item => item.subject === '外國文（英文）');
+  const planChoice = max * .7;
+  const written = data.profile?.writtenBaseline ?? {};
+  const ready = WRITTEN_SUBJECTS.every(subject => Number.isFinite(written[subject]) && written[subject] >= 0 && written[subject] <= 100 - CHOICE_WEIGHTS[subject].raw);
+  const plan = ready ? writtenTrial(planChoice, english.raw * .7, written) : null;
+  const actual = ready && complete ? writtenTrial(estimated, english.rate * english.raw, written) : null;
+  const remainingMax = ['入出國及移民法規', '外國文（英文）'].reduce((sum, subject) => {
+    const { raw, weight } = CHOICE_WEIGHTS[subject];
+    return sum + (100 - raw) * weight;
+  }, 0);
+  const summary = complete
+    ? `選擇題預估 <strong>${score(estimated)}／${max} 分</strong>，這是換算後對筆試總分的貢獻。`
+    : coveredMax
+      ? `有紀錄的科目暫估 <strong>${score(estimated)}／${coveredMax} 分</strong>。六科都有紀錄後，才顯示整體選擇題預估。`
+      : '目前沒有符合條件的作答。先練民國 111–115 年三等題，即可查看各科估分。';
+  return `<section class="panel"><h2>三等筆試成績模擬</h2>
+    <p>${summary}</p>
+    <p class="muted">以民國 111–115 年三等原題的首次作答換算，依 115 年一般組（選試英文）配分。四等、重做與官方一律給分題不列入；不足 10 題的科目僅供初步參考。</p>
+    <details><summary>查看各科預估與作答樣本</summary><ul>${subjects.map(item =>
+      `<li><strong>${escapeHtml(item.subject)}</strong> · ${item.done
+        ? `首次答對 ${item.correct}／${item.done} 題（${score(item.rate * 100)}%） · 加權 ${score(item.score)}／${item.max} 分${item.done < 10 ? '（樣本少）' : ''}`
+        : `尚無樣本 · 加權滿分 ${item.max} 分`}</li>`
+    ).join('')}</ul></details>
+    <p>選擇題最多貢獻 <strong>${max} 分</strong>，非選擇題（含申論、翻譯、作文）占 ${writtenMax} 分。</p>
+    <h3>用上次四等成績試算</h3>
+    <form onsubmit="saveWrittenBaseline(event)"><div class="skills">${WRITTEN_SUBJECTS.map(subject => `<label class="skill">${subject}非選擇分數（滿分 ${100 - CHOICE_WEIGHTS[subject].raw}）<input name="${subject}" type="number" required min="0" max="${100 - CHOICE_WEIGHTS[subject].raw}" step="0.1" value="${ready ? written[subject] : ''}"></label>`).join('')}</div>
+    <button type="submit">儲存非選擇成績</button></form>
+    <p class="muted">假設三等這三科的非選擇分數維持上次水準。輸入的分數儲存在本機。</p>
+    <p><strong>各科選擇拿七成</strong>約貢獻 ${score(planChoice)}／${max} 分，比六成多 ${score(max * .1)} 分。</p>
+    ${plan ? `<p>加上上次非選擇基準 ${score(plan.baseline)} 分，目前試算是 <strong>${score(plan.known)} 分</strong>。距離筆試 50 分還差 <strong>${score(plan.gap)} 分</strong>。移民法規申論與外國文翻譯、作文最多可再貢獻 ${remainingMax} 個加權分。</p>
+    <p>若外國文翻譯與作文拿 <strong>${score(plan.englishNeeded)}／75</strong>，外國文整科可到 50 分。這時移民法規申論需拿約 <strong>${score(plan.lawNeeded)}／50</strong>，筆試總分才到 50。</p>` : '<p>填寫上次的三科非選擇分數，即可算出距離筆試 50 分還差多少。</p>'}
+    ${actual ? `<p><strong>以你的實際練習紀錄試算</strong>，選擇估分加上上次非選擇基準後是 ${score(actual.known)} 分。距 50 分還差 <strong>${score(actual.gap)} 分</strong>，仍需由移民法規申論與外國文翻譯、作文補足。若外國文整科以 50 分為目標，翻譯與作文需拿約 ${score(actual.englishNeeded)}／75。</p>` : ''}
+    <p class="muted">總分為情境試算，實際錄取依當年同組標準及外國文規定。<a href="https://wwwq.moex.gov.tw/exam/wFrmExamQandASearch.aspx?e=115060&amp;y=2026" target="_blank" rel="noopener">115 年原卷</a> · <a href="https://law.exam.gov.tw/LawContent.aspx?id=FL062361" target="_blank" rel="noopener">考試規則第 6 條</a></p>
+  </section>`;
+}
 function ensureProgress(){data.favorites??=[];data.sessions??=[];data.profile??={target:70,scores:{}};data.profile.scores??={}}
 function questionAttemptCounts(id){
   const counts=new Map();
@@ -79,7 +173,7 @@ const qs=bank.questions.filter(q=>{
     default:return last.get(q.id)?.correct===false;
   }
 }).sort((a,b)=>(counts.get(b.id)?.wrong??0)-(counts.get(a.id)?.wrong??0));root(`<section class="panel"><h2>作答紀錄、錯題與收藏</h2><div class="actions">${[['all','全部已作答'],['wrong','目前錯題'],['frequent','常錯題（錯 2 次以上）'],['favorites','★ 我的收藏'],['correct','曾答對的題目']].map(([v,s])=>`<button class="${reviewFilter===v?'active':''}" onclick="reviewFilter='${v}';mistakes()">${s}</button>`).join('')}</div><p>此清單 ${qs.length} 題。每次送出答案都會累計到同一題。答對後會移出「目前錯題」，答錯次數、收藏和常錯標記仍會保留。</p>${qs.map(q=>`<div class="listitem"><b>${escapeHtml(label(q))}</b><p>${escapeHtml(q.question)}</p><p class="muted">${attemptCountText(counts.get(q.id))} · ${last.get(q.id)?.correct?'最近答對':last.has(q.id)?'最近答錯':'尚未作答'}</p><div class="actions"><button onclick="practice('${q.id}')">重做這題</button><button onclick="toggleFavorite('${q.id}')">${data.favorites.includes(q.id)?'★ 已收藏':'☆ 收藏'}</button></div></div>`).join('')||'<p>目前沒有符合條件的題目。</p>'}</section>`)};
-home=function(){ensureProgress();simpleHome();(content.querySelector?.('.quest-main')||content).insertAdjacentHTML('afterbegin',bankProgressHtml()+dailyPracticeHtml());const progressSubjects=[...SUBJECTS,...new Set(bank.questions.map(q=>q.subject).filter(s=>!SUBJECTS.includes(s)))];const stats=progressSubjects.map(s=>{const st=subjectStats(s);return `<div class="skill"><b>${s}</b><span class="tag">${!SUBJECTS.includes(s)?'舊制補充':s==='國文'||s==='法學知識與英文'?'共同科目':'專業科目'}</span>${subjectProgressHtml(s)}<p>答對 ${st.correct} 次 · 答錯 ${st.wrong} 次</p><p class="muted">首次作答 ${st.first.length} 題 · 正確率 ${percent(st.first)??'—'}${st.first.length?'%':''}</p><button onclick="startRound('${s}')">練 10 題</button></div>`}).join('');content.insertAdjacentHTML('beforeend',`<section class="panel"><h2>各科選擇題進度與練習</h2><p class="muted">已練題數以不同題目計算，包含全部年度的三等與四等題；重做不重複累計。</p>${data.activeRound?'<button class="primary" onclick="go(\'quiz\')">繼續尚未完成的一輪</button>':''}<div class="skills">${stats}</div><p>★ 收藏 ${data.favorites.length} 題｜已完成 ${data.sessions.filter(r=>r.completed).length} 輪</p></section>${choiceScorePanel()}`)};
+home=function(){ensureProgress();simpleHome();(content.querySelector?.('.quest-main')||content).insertAdjacentHTML('afterbegin',bankProgressHtml()+dailyPracticeHtml()+choiceForecastHtml());const progressSubjects=[...SUBJECTS,...new Set(bank.questions.map(q=>q.subject).filter(s=>!SUBJECTS.includes(s)))];const stats=progressSubjects.map(s=>{const st=subjectStats(s);return `<div class="skill"><b>${s}</b><span class="tag">${!SUBJECTS.includes(s)?'舊制補充':s==='國文'||s==='法學知識與英文'?'共同科目':'專業科目'}</span>${subjectProgressHtml(s)}<p>答對 ${st.correct} 次 · 答錯 ${st.wrong} 次</p><p class="muted">首次作答 ${st.first.length} 題 · 正確率 ${percent(st.first)??'—'}${st.first.length?'%':''}</p><button onclick="startRound('${s}')">練 10 題</button></div>`}).join('');content.insertAdjacentHTML('beforeend',`<section class="panel"><h2>各科選擇題進度與練習</h2><p class="muted">已練題數以不同題目計算，包含全部年度的三等與四等題；重做不重複累計。</p>${data.activeRound?'<button class="primary" onclick="go(\'quiz\')">繼續尚未完成的一輪</button>':''}<div class="skills">${stats}</div><p>★ 收藏 ${data.favorites.length} 題｜已完成 ${data.sessions.filter(r=>r.completed).length} 輪</p></section>${choiceScorePanel()}`)};
 function choiceScorePanel(){const first=new Map(),last=latest(),byId=new Map(bank.questions.map(q=>[q.id,q]));for(const a of data.attempts){const q=byId.get(a.id);if(q&&!q.allCredit&&!first.has(a.id))first.set(a.id,a)}const attempts=[...first.values()],wrong=bank.questions.filter(q=>!q.allCredit&&last.get(q.id)?.correct===false).length;return `<section class="panel"><h2>選擇題學習表現</h2><p>首次作答正確率：<strong>${percent(attempts)===null?'尚無紀錄':percent(attempts)+'%'}</strong>（${attempts.length} 題，不含官方一律給分題）。目前待複習錯題 ${wrong} 題。</p><p>現階段以選擇題為主，目標是練完全部 ${bank.questions.length} 題並減少錯題。重做不會增加已考不同題數；本區正確率不換算為正式考試總分。</p><button onclick="go('mistakes')">查看錯題與收藏</button></section>`}
 function setScore(s,value){ensureProgress();if(value==='')delete data.profile.scores[s];else {const n=Number(value);if(!Number.isFinite(n)||n<0||n>100)return;data.profile.scores[s]=n}save();home()}
 function setTarget(value){const n=Number(value);if(!Number.isFinite(n)||n<0||n>100)return;data.profile.target=n;save();home()}

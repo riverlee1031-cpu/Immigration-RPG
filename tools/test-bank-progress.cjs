@@ -51,6 +51,19 @@ const backup={attempts:[oldAttempt,mobileAttempt],favorites:[untouched.id],notes
 const merged=mergeBackup(backup);
 if(merged.added!==1||merged.conflicts!==1||data.attempts[0]!==mobileAttempt||!latest().get(tracked.id)?.correct||data.favorites.length!==2||data.notes[tracked.id]!=='網頁筆記'||data.notes[untouched.id]!=='新增筆記')throw Error('Merge lost local records or order');
 if(mergeBackup(backup).added!==0||data.attempts.length!==2)throw Error('Repeated import inflated counts');
+
+data.attempts=[];
+if(choiceForecast().complete||choiceForecast().max!==47)throw Error('Choice maximum or empty forecast');
+for(const subject of CORE){
+  const sample=bank.questions.filter(q=>q.grade==='三等'&&q.rocYear>=111&&q.rocYear<=115&&!q.allCredit&&q.subject===subject).slice(0,10);
+  data.attempts.push(...sample.map((q,i)=>({id:q.id,correct:i<7})),{id:sample[9].id,correct:true});
+}
+const oldFour=bank.questions.find(q=>q.grade==='四等');data.attempts.push({id:oldFour.id,correct:true});
+const forecast=choiceForecast();
+if(!forecast.complete||forecast.estimated.toFixed(1)!=='32.9'||forecast.subjects.some(s=>s.done!==10))throw Error('Weighted first-attempt choice forecast');
+data.profile.writtenBaseline={'國文':40,'行政法':20,'移民執法與刑事法':10};
+const estimate=choiceForecastHtml();
+if(!estimate.includes('42.9 分')||!estimate.includes('7.1 分')||!estimate.includes('32.5／75'))throw Error('Written baseline simulation');
 `,ctx);ctx.document.querySelector=()=>({querySelector:()=>({})});
 content.contains=()=>false;
 vm.runInContext(fs.readFileSync(path.join(root,'sync.js'),'utf8').replace(/startCloudSync\(\);\s*$/,''),ctx);
@@ -72,4 +85,4 @@ await vm.runInContext(`(async()=>{
   }};
   await syncNow();await syncNow();
   if(data.attempts.length!==2||latest().get(local.id)?.correct!==false||requests!==2)throw Error('Cloud practice not merged');
-})()`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, daily practice, backup merging, and cloud retries')})().catch(e=>{console.error(e);process.exitCode=1});
+})()`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, daily practice, backup merging, cloud retries, and the weighted score simulation')})().catch(e=>{console.error(e);process.exitCode=1});

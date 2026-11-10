@@ -44,4 +44,11 @@ data.attempts=[
 const daily=dailyPractice();
 if(daily.size!==2||daily.get('2026-11-08')?.fresh!==1||daily.get('2026-11-08')?.total!==1||daily.get('2026-11-09')?.total!==3||daily.get('2026-11-09')?.fresh!==1)throw Error('Daily history and Taipei midnight');
 home();if(!content.innerHTML.includes('每日練習紀錄')||!content.innerHTML.includes('練習 3 題 · 新題 1 題 · 重做 2 題'))throw Error('Daily progress missing from home');
-`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, and daily practice')})().catch(e=>{console.error(e);process.exitCode=1});
+const oldAttempt={id:tracked.id,time:'2026-11-09T02:00:00Z',correct:true,selected:0};
+const mobileAttempt={id:tracked.id,time:'2026-11-09T01:00:00Z',correct:false,selected:1};
+data.attempts=[oldAttempt];data.favorites=[tracked.id];data.notes={[tracked.id]:'網頁筆記'};
+const backup={attempts:[oldAttempt,mobileAttempt],favorites:[untouched.id],notes:{[tracked.id]:'手機筆記',[untouched.id]:'新增筆記'}};
+const merged=mergeBackup(backup);
+if(merged.added!==1||merged.conflicts!==1||data.attempts[0]!==mobileAttempt||!latest().get(tracked.id)?.correct||data.favorites.length!==2||data.notes[tracked.id]!=='網頁筆記'||data.notes[untouched.id]!=='新增筆記')throw Error('Merge lost local records or order');
+if(mergeBackup(backup).added!==0||data.attempts.length!==2)throw Error('Repeated import inflated counts');
+`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, daily practice, and backup merging')})().catch(e=>{console.error(e);process.exitCode=1});

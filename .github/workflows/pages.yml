@@ -26,6 +26,7 @@ jobs:
         run: |
           node --check app-v2.js
           node --check practice.js
+          node --check sync.js
           node --check theme.js
           node --check explanations.js
           node tools/verify-bank.cjs
@@ -36,7 +37,7 @@ jobs:
       - name: Prepare website
         run: |
           mkdir _site
-          cp index.html style.css pixel-theme.css app-v2.js practice.js theme.js explanations.js _site/
+          cp index.html style.css pixel-theme.css app-v2.js practice.js theme.js explanations.js sync.js _site/
           cp -r assets _site/
           cp -r data _site/
           touch _site/.nojekyll

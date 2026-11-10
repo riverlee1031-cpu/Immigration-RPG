@@ -4,7 +4,7 @@ const KEY='immigration-quest-official-v2';
 const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let bank={papers:[],questions:[]},data={attempts:[],notes:{}},tab='home',subject='全部科目',year='all',grade='all',mode='all',current=null,selected=null,revealed=false,sourcePage=1;
 const content=document.querySelector('#content');
-function save(){try{localStorage.setItem(KEY,JSON.stringify(data));document.querySelector('#status').textContent='● 本機儲存中'}catch{document.querySelector('#status').textContent='⚠ 儲存失敗，請匯出備份'}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));document.querySelector('#status').textContent='● 本機儲存中';if(typeof window!=='undefined')window.dispatchEvent(new Event('practice-saved'))}catch{document.querySelector('#status').textContent='⚠ 儲存失敗，請匯出備份'}}
 function latest(){const ids=new Set(bank.questions.map(q=>q.id)),map=new Map();for(const a of data.attempts)if(ids.has(a.id))map.set(a.id,a);return map}
 function pool(){const last=latest();return bank.questions.filter(q=>(subject==='全部科目'?SUBJECTS.includes(q.subject):q.subject===subject)&&(year==='all'||String(q.rocYear)===year)&&(mode!=='wrong'||last.get(q.id)?.correct===false)&&(mode!=='unseen'||!last.has(q.id)))}
 function label(q){return `${q.rocYear} 年（${q.year}）｜${q.grade}｜移民行政｜${q.originalSubject}｜第 ${q.number} 題`}

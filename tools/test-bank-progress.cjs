@@ -51,4 +51,25 @@ const backup={attempts:[oldAttempt,mobileAttempt],favorites:[untouched.id],notes
 const merged=mergeBackup(backup);
 if(merged.added!==1||merged.conflicts!==1||data.attempts[0]!==mobileAttempt||!latest().get(tracked.id)?.correct||data.favorites.length!==2||data.notes[tracked.id]!=='網頁筆記'||data.notes[untouched.id]!=='新增筆記')throw Error('Merge lost local records or order');
 if(mergeBackup(backup).added!==0||data.attempts.length!==2)throw Error('Repeated import inflated counts');
-`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, daily practice, and backup merging')})().catch(e=>{console.error(e);process.exitCode=1});
+`,ctx);ctx.document.querySelector=()=>({querySelector:()=>({})});
+content.contains=()=>false;
+vm.runInContext(fs.readFileSync(path.join(root,'sync.js'),'utf8').replace(/startCloudSync\(\);\s*$/,''),ctx);
+await vm.runInContext(`(async()=>{
+  owner='test-owner';
+  const local={id:bank.questions[0].id,time:'2026-11-09T00:00:00Z',selected:0,correct:true};
+  const remote={id:bank.questions[0].id,time:'2026-11-10T00:00:00Z',selected:1,correct:false};
+  data.attempts=[local];
+  let requests=0;
+  client={rpc:async(name,{changes,known_revision})=>{
+    if(name!=='sync_practice')throw Error('Unexpected endpoint');
+    requests++;
+    if(requests===1){
+      if(known_revision!==null||Object.keys(changes).length!==1)throw Error('Missing first upload');
+      return {data:{revision:2,attempts:syncEntries([local,remote])}};
+    }
+    if(known_revision!==2||Object.keys(changes).length)throw Error('Sync retried acknowledged attempts');
+    return {data:{revision:2,attempts:null}};
+  }};
+  await syncNow();await syncNow();
+  if(data.attempts.length!==2||latest().get(local.id)?.correct!==false||requests!==2)throw Error('Cloud practice not merged');
+})()`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts, daily practice, backup merging, and cloud retries')})().catch(e=>{console.error(e);process.exitCode=1});

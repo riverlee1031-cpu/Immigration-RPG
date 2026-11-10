@@ -18,4 +18,19 @@ const matching=splitQuestions.filter(q=>q.subject===subject);library();
 if(!content.innerHTML.includes('本科 '+matching.length+' 題／原卷 '+splitPaper.count+' 題')||!content.innerHTML.includes(matching[0].id))throw Error('Filtered split-paper coverage or practice link');
 endRound();practice(matching[0].id);if(current?.id!==matching[0].id||data.activeRound.queue.length!==1)throw Error("Direct question practice");
 pick(current.acceptedAnswers[0]);submitAnswer();if(!revealed||latest().get(current.id)?.correct!==true)throw Error("Direct answer recorded");
-`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion and review')})().catch(e=>{console.error(e);process.exitCode=1});
+endRound();const tracked=bank.questions[0], untouched=bank.questions[1];
+data.attempts=[{id:tracked.id,correct:false},{id:tracked.id,correct:true},{id:tracked.id,correct:false}];
+data.favorites=[tracked.id];data.notes={[tracked.id]:'保留筆記'};save();
+const historical=localStorage.getItem(KEY);
+for(const filter of ['all','wrong','frequent','favorites','correct']){
+  reviewFilter=filter;mistakes();
+  if(!content.innerHTML.includes('累計答對 1 次 · 累計答錯 2 次 · 最近答錯')||content.innerHTML.includes(untouched.id))throw Error('History totals or filter '+filter);
+}
+if(localStorage.getItem(KEY)!==historical)throw Error('Viewing counts rewrote saved history');
+practice(tracked.id);if(!content.innerHTML.includes('累計答對 1 次 · 累計答錯 2 次'))throw Error('Question history missing');
+pick(current.acceptedAnswers[0]);submitAnswer();submitAnswer();
+if(!content.innerHTML.includes('累計答對 2 次 · 累計答錯 2 次'))throw Error('Count after submission');
+reviewFilter='wrong';mistakes();if(content.innerHTML.includes(tracked.id))throw Error('Latest correct answer remains in current mistakes');
+reviewFilter='frequent';mistakes();if(!content.innerHTML.includes(tracked.id))throw Error('Historical wrong attempts disappeared');
+const retained=JSON.parse(localStorage.getItem(KEY));if(retained.attempts.length!==4||retained.favorites[0]!==tracked.id||retained.notes[tracked.id]!=='保留筆記')throw Error('Saved history lost');
+`,ctx);console.log('PASS: 200 unique historical questions, duplicate/legacy exclusion, unseen random pool, saved answers, partial rounds, archive coverage, final remainder, completion, review and per-question answer counts')})().catch(e=>{console.error(e);process.exitCode=1});

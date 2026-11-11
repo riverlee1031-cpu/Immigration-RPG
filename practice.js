@@ -34,7 +34,13 @@ function choiceForecast() {
   const eligible = new Map(bank.questions
     .filter(q => q.grade === '三等' && q.rocYear >= 111 && q.rocYear <= 115 && !q.allCredit && Object.hasOwn(CHOICE_WEIGHTS, q.subject))
     .map(q => [q.id, q.subject]));
-  const counts = new Map(Object.keys(CHOICE_WEIGHTS).map(subject => [subject, { done: 0, correct: 0 }]));
+  const counts = new Map(Object.keys(CHOICE_WEIGHTS).map(subject => [subject, { done: 0, correct: 0, total: 0, mastered: 0 }]));
+  const attemptsByQuestion = questionAttemptCounts();
+  for (const [id, subject] of eligible) {
+    const count = counts.get(subject);
+    count.total++;
+    if ((attemptsByQuestion.get(id)?.correct ?? 0) >= 3) count.mastered++;
+  }
   const seen = new Set();
   for (const attempt of data.attempts) {
     const subject = eligible.get(attempt.id);
@@ -45,10 +51,11 @@ function choiceForecast() {
     if (attempt.correct) count.correct++;
   }
   const subjects = Object.entries(CHOICE_WEIGHTS).map(([subject, { raw, weight }]) => {
-    const { done, correct } = counts.get(subject);
+    const { done, correct, total, mastered } = counts.get(subject);
     const rate = done ? correct / done : null;
     const max = raw * weight;
-    return { subject, done, correct, rate, raw, max, score: rate === null ? null : max * rate };
+    return { subject, done, correct, rate, raw, max, total, mastered,
+      score: rate === null ? null : max * rate, masteryScore: total ? max * mastered / total : 0 };
   });
   const max = subjects.reduce((sum, item) => sum + item.max, 0);
   const coveredMax = subjects.reduce((sum, item) => sum + (item.done ? item.max : 0), 0);
@@ -66,6 +73,8 @@ function choiceForecastHtml() {
   const ready = WRITTEN_SUBJECTS.every(subject => Number.isFinite(written[subject]) && written[subject] >= 0 && written[subject] <= 100 - CHOICE_WEIGHTS[subject].raw);
   const plan = ready ? writtenTrial(planChoice, english.raw * .7, written) : null;
   const actual = ready && complete ? writtenTrial(estimated, english.rate * english.raw, written) : null;
+  const masteryPoints = subjects.reduce((sum, item) => sum + item.masteryScore, 0);
+  const masteryTrial = ready ? writtenTrial(masteryPoints, english.masteryScore / CHOICE_WEIGHTS[english.subject].weight, written) : null;
   const remainingMax = ['入出國及移民法規', '外國文（英文）'].reduce((sum, subject) => {
     const { raw, weight } = CHOICE_WEIGHTS[subject];
     return sum + (100 - raw) * weight;
@@ -84,6 +93,13 @@ function choiceForecastHtml() {
         : `尚無樣本 · 加權滿分 ${item.max} 分`}</li>`
     ).join('')}</ul></details>
     <p>選擇題最多貢獻 <strong>${max} 分</strong>，非選擇題（含申論、翻譯、作文）占 ${writtenMax} 分。</p>
+    <h3>答對至少 3 次的保守估分</h3>
+    <p>選擇題保守估分 <strong>${score(masteryPoints)}／${max} 分</strong>。</p>
+    <p class="muted">各科用答對至少 3 次的不同題數除以該科符合條件的全部題數，再乘以該科選擇題加權滿分。這個分數反映目前熟練題目的覆蓋率，樣本少時會偏低。</p>
+    <details><summary>查看各科熟練題數與估分</summary><ul>${subjects.map(item =>
+      `<li>${escapeHtml(item.subject)} · ${item.mastered}／${item.total} 題 · 加權 ${score(item.masteryScore)}／${item.max} 分</li>`
+    ).join('')}</ul></details>
+    ${masteryTrial ? `<p>加上上次四等非選擇基準，保守小計 <strong>${score(masteryTrial.known)} 分</strong>，距筆試 50 分還差 <strong>${score(masteryTrial.gap)} 分</strong>。</p>` : ''}
     <h3>用上次四等成績試算</h3>
     <form onsubmit="saveWrittenBaseline(event)"><div class="skills">${WRITTEN_SUBJECTS.map(subject => `<label class="skill">${subject}非選擇分數（滿分 ${100 - CHOICE_WEIGHTS[subject].raw}）<input name="${subject}" type="number" required min="0" max="${100 - CHOICE_WEIGHTS[subject].raw}" step="0.1" value="${ready ? written[subject] : ''}"></label>`).join('')}</div>
     <button type="submit">儲存非選擇成績</button></form>
